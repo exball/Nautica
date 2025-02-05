@@ -12,7 +12,7 @@ let proxyIP = "";
 let cachedProxyList = [];
 
 // Constant
-const APP_DOMAIN = ${serviceName}.${rootDomain};
+const APP_DOMAIN = `${serviceName}.${rootDomain}`;
 const PORTS = [443, 80];
 const PROTOCOLS = ["trojan", "vless", "ss"];
 const KV_PROXY_URL = "https://raw.githubusercontent.com/exball/Nautica/refs/heads/main/kvProxyList.json";
