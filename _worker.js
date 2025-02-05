@@ -14,7 +14,7 @@ let cachedProxyList = [];
 // Constant
 const APP_DOMAIN = `${serviceName}.${rootDomain}`;
 const PORTS = [443, 80];
-const PROTOCOLS = ["tjn", "vl", "ss"];
+const PROTOCOLS = ["trojan", "vless", "ss"];
 const KV_PROXY_URL = "https://raw.githubusercontent.com/exball/Nautica/refs/heads/main/kvProxyList.json";
 const PROXY_BANK_URL = "https://raw.githubusercontent.com/exball/Nautica/refs/heads/main/proxyList.txt";
 const DNS_SERVER_ADDRESS = "8.8.8.8";
@@ -107,7 +107,7 @@ function getAllConfig(request, hostName, proxyList, page = 0) {
     const uuid = crypto.randomUUID();
 
     // Build URI
-    const uri = new URL(`tjn://${hostName}`);
+    const uri = new URL(`trojan://${hostName}`);
     uri.searchParams.set("encryption", "none");
     uri.searchParams.set("type", "ws");
     uri.searchParams.set("host", hostName);
@@ -147,7 +147,7 @@ function getAllConfig(request, hostName, proxyList, page = 0) {
 
           uri.protocol = protocol;
           uri.searchParams.set("security", port == 443 ? "tls" : "none");
-          uri.searchParams.set("sni", port == 80 && protocol == "vl" ? "" : hostName);
+          uri.searchParams.set("sni", port == 80 && protocol == "vless" ? "" : hostName);
 
           // Build VPN URI
           proxies.push(uri.toString());
@@ -170,7 +170,7 @@ function getAllConfig(request, hostName, proxyList, page = 0) {
 
     return document.build();
   } catch (error) {
-    return `An error occurred while generating the vl configurations. ${error}`;
+    return `An error occurred while generating the vless configurations. ${error}`;
   }
 }
 
@@ -302,7 +302,7 @@ export default {
           const uuid = crypto.randomUUID();
           const result = [];
           for (const proxy of proxyList) {
-            const uri = new URL(`tjn://${fillerDomain}`);
+            const uri = new URL(`trojan://${fillerDomain}`);
             uri.searchParams.set("encryption", "none");
             uri.searchParams.set("type", "ws");
             uri.searchParams.set("host", APP_DOMAIN);
@@ -326,7 +326,7 @@ export default {
                 }
 
                 uri.searchParams.set("security", port == 443 ? "tls" : "none");
-                uri.searchParams.set("sni", port == 80 && protocol == "vl" ? "" : APP_DOMAIN);
+                uri.searchParams.set("sni", port == 80 && protocol == "vless" ? "" : APP_DOMAIN);
                 uri.searchParams.set("path", `/${proxy.proxyIP}-${proxy.proxyPort}`);
 
                 uri.hash = `${result.length + 1} ${getFlagEmoji(proxy.country)} ${proxy.org} WS ${
@@ -443,10 +443,10 @@ async function websocketHandler(request) {
           const protocol = await protocolSniffer(chunk);
           let protocolHeader;
 
-          if (protocol === "tjn") {
-            protocolHeader = parsetjnHeader(chunk);
-          } else if (protocol === "vl") {
-            protocolHeader = parsevlHeader(chunk);
+          if (protocol === "trojan") {
+            protocolHeader = parsetrojanHeader(chunk);
+          } else if (protocol === "vless") {
+            protocolHeader = parsevlessHeader(chunk);
           } else if (protocol === "Shadowsocks") {
             protocolHeader = parseShadowsocksHeader(chunk);
           } else {
@@ -511,20 +511,20 @@ async function websocketHandler(request) {
 
 async function protocolSniffer(buffer) {
   if (buffer.byteLength >= 62) {
-    const tjnDelimiter = new Uint8Array(buffer.slice(56, 60));
-    if (tjnDelimiter[0] === 0x0d && tjnDelimiter[1] === 0x0a) {
-      if (tjnDelimiter[2] === 0x01 || tjnDelimiter[2] === 0x03 || tjnDelimiter[2] === 0x7f) {
-        if (tjnDelimiter[3] === 0x01 || tjnDelimiter[3] === 0x03 || tjnDelimiter[3] === 0x04) {
-          return "tjn";
+    const trojanDelimiter = new Uint8Array(buffer.slice(56, 60));
+    if (trojanDelimiter[0] === 0x0d && trojanDelimiter[1] === 0x0a) {
+      if (trojanDelimiter[2] === 0x01 || trojanDelimiter[2] === 0x03 || trojanDelimiter[2] === 0x7f) {
+        if (trojanDelimiter[3] === 0x01 || trojanDelimiter[3] === 0x03 || trojanDelimiter[3] === 0x04) {
+          return "trojan";
         }
       }
     }
   }
 
-  const vlDelimiter = new Uint8Array(buffer.slice(1, 17));
+  const vlessDelimiter = new Uint8Array(buffer.slice(1, 17));
   // Hanya mendukung UUID v4
-  if (arrayBufferToHex(vlDelimiter).match(/^[0-9a-f]{8}[0-9a-f]{4}4[0-9a-f]{3}[89ab][0-9a-f]{3}[0-9a-f]{12}$/i)) {
-    return "vl";
+  if (arrayBufferToHex(vlessDelimiter).match(/^[0-9a-f]{8}[0-9a-f]{4}4[0-9a-f]{3}[89ab][0-9a-f]{3}[0-9a-f]{12}$/i)) {
+    return "vless";
   }
 
   return "Shadowsocks"; // default
@@ -716,13 +716,13 @@ function parseShadowsocksHeader(ssBuffer) {
   };
 }
 
-function parsevlHeader(vlBuffer) {
-  const version = new Uint8Array(vlBuffer.slice(0, 1));
+function parsevlessHeader(vlessBuffer) {
+  const version = new Uint8Array(vlessBuffer.slice(0, 1));
   let isUDP = false;
 
-  const optLength = new Uint8Array(vlBuffer.slice(17, 18))[0];
+  const optLength = new Uint8Array(vlessBuffer.slice(17, 18))[0];
 
-  const cmd = new Uint8Array(vlBuffer.slice(18 + optLength, 18 + optLength + 1))[0];
+  const cmd = new Uint8Array(vlessBuffer.slice(18 + optLength, 18 + optLength + 1))[0];
   if (cmd === 1) {
   } else if (cmd === 2) {
     isUDP = true;
@@ -733,11 +733,11 @@ function parsevlHeader(vlBuffer) {
     };
   }
   const portIndex = 18 + optLength + 1;
-  const portBuffer = vlBuffer.slice(portIndex, portIndex + 2);
+  const portBuffer = vlessBuffer.slice(portIndex, portIndex + 2);
   const portRemote = new DataView(portBuffer).getUint16(0);
 
   let addressIndex = portIndex + 2;
-  const addressBuffer = new Uint8Array(vlBuffer.slice(addressIndex, addressIndex + 1));
+  const addressBuffer = new Uint8Array(vlessBuffer.slice(addressIndex, addressIndex + 1));
 
   const addressType = addressBuffer[0];
   let addressLength = 0;
@@ -746,16 +746,16 @@ function parsevlHeader(vlBuffer) {
   switch (addressType) {
     case 1: // For IPv4
       addressLength = 4;
-      addressValue = new Uint8Array(vlBuffer.slice(addressValueIndex, addressValueIndex + addressLength)).join(".");
+      addressValue = new Uint8Array(vlessBuffer.slice(addressValueIndex, addressValueIndex + addressLength)).join(".");
       break;
     case 2: // For Domain
-      addressLength = new Uint8Array(vlBuffer.slice(addressValueIndex, addressValueIndex + 1))[0];
+      addressLength = new Uint8Array(vlessBuffer.slice(addressValueIndex, addressValueIndex + 1))[0];
       addressValueIndex += 1;
-      addressValue = new TextDecoder().decode(vlBuffer.slice(addressValueIndex, addressValueIndex + addressLength));
+      addressValue = new TextDecoder().decode(vlessBuffer.slice(addressValueIndex, addressValueIndex + addressLength));
       break;
     case 3: // For IPv6
       addressLength = 16;
-      const dataView = new DataView(vlBuffer.slice(addressValueIndex, addressValueIndex + addressLength));
+      const dataView = new DataView(vlessBuffer.slice(addressValueIndex, addressValueIndex + addressLength));
       const ipv6 = [];
       for (let i = 0; i < 8; i++) {
         ipv6.push(dataView.getUint16(i * 2).toString(16));
@@ -781,13 +781,13 @@ function parsevlHeader(vlBuffer) {
     addressType: addressType,
     portRemote: portRemote,
     rawDataIndex: addressValueIndex + addressLength,
-    rawClientData: vlBuffer.slice(addressValueIndex + addressLength),
+    rawClientData: vlessBuffer.slice(addressValueIndex + addressLength),
     version: new Uint8Array([version[0], 0]),
     isUDP: isUDP,
   };
 }
 
-function parsetjnHeader(buffer) {
+function parsetrojanHeader(buffer) {
   const socks5DataBuffer = buffer.slice(58);
   if (socks5DataBuffer.byteLength < 6) {
     return {
@@ -1568,7 +1568,7 @@ class Document {
       proxyGroupElement += `  </div>`;
       proxyGroupElement += `  <div class="flex flex-col gap-2 mt-3 text-sm">`;
       for (let x = 0; x < proxyData.list.length; x++) {
-        const indexName = ["tjn TLS", "vl TLS", "SS TLS", "tjn NTLS", "vl NTLS", "SS NTLS"];
+        const indexName = ["trojan TLS", "vless TLS", "SS TLS", "trojan NTLS", "vless NTLS", "SS NTLS"];
         const proxy = proxyData.list[x];
 
         if (x % 2 == 0) {
