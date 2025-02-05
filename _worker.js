@@ -1,12 +1,12 @@
 import { connect } from "cloudflare:sockets";
 
 // Variables
-const rootDomain = "foolvpn.me"; // Ganti dengan domain utama kalian
-const serviceName = "nautica"; // Ganti dengan nama workers kalian
-const apiKey = ""; // Ganti dengan Global API key kalian (https://dash.cloudflare.com/profile/api-tokens)
-const apiEmail = ""; // Ganti dengan email yang kalian gunakan
-const accountID = ""; // Ganti dengan Account ID kalian (https://dash.cloudflare.com -> Klik domain yang kalian gunakan)
-const zoneID = ""; // Ganti dengan Zone ID kalian (https://dash.cloudflare.com -> Klik domain yang kalian gunakan)
+const rootDomain = "exbal.my.id"; // Ganti dengan domain utama kalian
+const serviceName = "proxy"; // Ganti dengan nama workers kalian
+const apiKey = "e6d24602a3abab717dec14a8ec1b726c0bfac"; // Ganti dengan Global API key kalian (https://dash.cloudflare.com/profile/api-tokens)
+const apiEmail = "exball689@gmail.com"; // Ganti dengan email yang kalian gunakan
+const accountID = "536980fa67f4a63c061f8bcc4b7c2603"; // Ganti dengan Account ID kalian (https://dash.cloudflare.com -> Klik domain yang kalian gunakan)
+const zoneID = "d823a0361e58d538144d59b8863f5665"; // Ganti dengan Zone ID kalian (https://dash.cloudflare.com -> Klik domain yang kalian gunakan)
 let isApiReady = false;
 let proxyIP = "";
 let cachedProxyList = [];
@@ -15,8 +15,8 @@ let cachedProxyList = [];
 const APP_DOMAIN = `${serviceName}.${rootDomain}`;
 const PORTS = [443, 80];
 const PROTOCOLS = ["trojan", "vless", "ss"];
-const KV_PROXY_URL = "https://raw.githubusercontent.com/FoolVPN-ID/Nautica/refs/heads/main/kvProxyList.json";
-const PROXY_BANK_URL = "https://raw.githubusercontent.com/FoolVPN-ID/Nautica/refs/heads/main/proxyList.txt";
+const KV_PROXY_URL = "https://raw.githubusercontent.com/exball/Nautica/refs/heads/main/kvProxyList.json";
+const PROXY_BANK_URL = "https://raw.githubusercontent.com/exball/Nautica/refs/heads/main/proxyList.txt";
 const DNS_SERVER_ADDRESS = "8.8.8.8";
 const DNS_SERVER_PORT = 53;
 const PROXY_HEALTH_CHECK_API = "https://id1.foolvpn.me/api/v1/check";
