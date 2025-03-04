@@ -3813,6 +3813,7 @@
 172.232.239.151,587,ID,Akamai Connected Cloud
 203.194.112.119,2053,ID,First Cagayan Converge Data Center Inc.
 203.194.112.119,8443,ID,First Cagayan Converge Data Center Inc.
+103.6.207.108,8080,ID,PT Pusat Media Indonesia
 40.113.60.248,2053,IE,Microsoft Azure
 38.180.21.33,443,IE,M247 Europe
 40.113.60.248,8443,IE,Microsoft Azure
