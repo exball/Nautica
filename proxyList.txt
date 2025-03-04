@@ -3810,11 +3810,11 @@
 95.164.23.71,443,HU,Stark Industries Solutions
 
 43.218.77.16,1443,ID,Amazon.com
-35.219.15.90:443,ID,Google Cloud
+35.219.15.90,443,ID,Google Cloud
 35.219.50.99,443,ID,Google Cloud
 36.95.152.58,12137,PT Telkom Indonesia
 172.235.251.7,587,ID,Akamai Connected Cloud
-172.232.237.112:2053,ID,Akamai Connected Cloud
+172.232.237.112,2053,ID,Akamai Connected Cloud
 172.235.251.223,587,ID,Akamai Connected Cloud
 172.232.239.151,587,ID,Akamai Connected Cloud
 203.194.112.119,2053,ID,First Cagayan Converge Data Center Inc.
