@@ -1,12 +1,13 @@
+
 import { connect } from "cloudflare:sockets";
 
 // Variables
-const rootDomain = "foolvpn.me"; // Ganti dengan domain utama kalian
-const serviceName = "nautica"; // Ganti dengan nama workers kalian
-const apiKey = ""; // Ganti dengan Global API key kalian (https://dash.cloudflare.com/profile/api-tokens)
-const apiEmail = ""; // Ganti dengan email yang kalian gunakan
-const accountID = ""; // Ganti dengan Account ID kalian (https://dash.cloudflare.com -> Klik domain yang kalian gunakan)
-const zoneID = ""; // Ganti dengan Zone ID kalian (https://dash.cloudflare.com -> Klik domain yang kalian gunakan)
+const rootDomain = "exbal.my.id"; // Ganti dengan domain utama kalian
+const serviceName = "proxy"; // Ganti dengan nama workers kalian
+const apiKey = "e6d24602a3abab717dec14a8ec1b726c0bfac"; // Ganti dengan Global API key kalian (https://dash.cloudflare.com/profile/api-tokens)
+const apiEmail = "exball689@gmail.com"; // Ganti dengan email yang kalian gunakan
+const accountID = "536980fa67f4a63c061f8bcc4b7c2603"; // Ganti dengan Account ID kalian (https://dash.cloudflare.com -> Klik domain yang kalian gunakan)
+const zoneID = "d823a0361e58d538144d59b8863f5665"; // Ganti dengan Zone ID kalian (https://dash.cloudflare.com -> Klik domain yang kalian gunakan)
 let isApiReady = false;
 let proxyIP = "";
 let cachedProxyList = [];
@@ -15,8 +16,8 @@ let cachedProxyList = [];
 const APP_DOMAIN = `${serviceName}.${rootDomain}`;
 const PORTS = [443, 80];
 const PROTOCOLS = [reverse("najort"), reverse("sselv"), reverse("ss")];
-const KV_PROXY_URL = "https://raw.githubusercontent.com/FoolVPN-ID/Nautica/refs/heads/main/kvProxyList.json";
-const PROXY_BANK_URL = "https://raw.githubusercontent.com/FoolVPN-ID/Nautica/refs/heads/main/proxyList.txt";
+const KV_PROXY_URL = "https://raw.githubusercontent.com/exball/Nautica/refs/heads/main/kvProxyList.json";
+const PROXY_BANK_URL = "https://raw.githubusercontent.com/exball/Nautica/refs/heads/main/proxyList.txt";
 const DNS_SERVER_ADDRESS = "8.8.8.8";
 const DNS_SERVER_PORT = 53;
 const PROXY_HEALTH_CHECK_API = "https://id1.foolvpn.me/api/v1/check";
@@ -100,6 +101,13 @@ async function reverseProxy(request, target, targetPath) {
   return newResponse;
 }
 
+// Fungsi untuk mengganti domain dalam URL
+function replaceDomain(url, oldDomain, newDomain) {
+  // Hanya ganti domain yang diawali dengan karakter "@"
+  // Jangan ganti domain yang ada di parameter "host=" atau "sni="
+  return url.replace(new RegExp('@' + oldDomain, 'g'), '@' + newDomain);
+}
+
 function getAllConfig(request, hostName, proxyList, page = 0) {
   const startIndex = PROXY_PER_PAGE * page;
 
@@ -150,7 +158,12 @@ function getAllConfig(request, hostName, proxyList, page = 0) {
           uri.searchParams.set("sni", port == 80 && protocol == reverse("sselv") ? "" : hostName);
 
           // Build VPN URI
-          proxies.push(uri.toString());
+          let uriString = uri.toString();
+          
+          // Ganti domain dalam URL - menggunakan domain default karena ini di sisi server
+          uriString = replaceDomain(uriString, hostName, "quiz.int.vidio.com");
+          
+          proxies.push(uriString);
         }
       }
       document.registerProxies(
@@ -324,15 +337,24 @@ export default {
                 uri.hash = `${result.length + 1} ${getFlagEmoji(proxy.country)} ${proxy.org} WS ${
                   port == 443 ? "TLS" : "NTLS"
                 } [${serviceName}]`;
-                result.push(uri.toString());
+                
+                // Konversi URI ke string
+                let uriString = uri.toString();
+                
+                // Ganti domain dalam URL - menggunakan domain default karena ini di sisi server
+                uriString = replaceDomain(uriString, fillerDomain, "quiz.int.vidio.com");
+                
+                result.push(uriString);
               }
             }
           }
 
           let finalResult = "";
+
           switch (filterFormat) {
             case "raw":
-              finalResult = result.join("\n");
+              // Ganti domain dalam URL raw - menggunakan domain default karena ini di sisi server
+              finalResult = result.map(url => replaceDomain(url, APP_DOMAIN, "quiz.int.vidio.com")).join("\n");
               break;
             case "clash":
             case "sfa":
@@ -349,6 +371,10 @@ export default {
               });
               if (res.status == 200) {
                 finalResult = await res.text();
+                // Jika format adalah bfr, ganti domain dalam hasil - menggunakan domain default karena ini di sisi server
+                if (filterFormat === "bfr") {
+                  finalResult = replaceDomain(finalResult, APP_DOMAIN, "quiz.int.vidio.com");
+                }
               } else {
                 return new Response(res.statusText, {
                   status: res.status,
@@ -1046,8 +1072,51 @@ let baseHTML = `
     </style>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lozad/dist/lozad.min.js"></script>
     <script>
+      // Fungsi untuk mengganti domain dalam URL
+      function replaceDomain(url, oldDomain, newDomain) {
+        // Hanya ganti domain yang diawali dengan karakter "@"
+        // Jangan ganti domain yang ada di parameter "host=" atau "sni="
+        console.log("Replacing domain in URL:", url);
+        console.log("Old domain:", oldDomain);
+        console.log("New domain:", newDomain);
+        
+        // Cek apakah URL mengandung domain lama
+        if (url.includes('@' + oldDomain)) {
+          console.log("URL contains old domain, replacing...");
+          return url.replace(new RegExp('@' + oldDomain, 'g'), '@' + newDomain);
+        } else if (url.includes('@quiz.int.vidio.com')) {
+          // Jika URL mengandung domain default, ganti dengan domain baru
+          console.log("URL contains default domain, replacing with new domain...");
+          return url.replace(new RegExp('@quiz.int.vidio.com', 'g'), '@' + newDomain);
+        } else {
+          // Coba cari domain lain yang mungkin perlu diganti
+          const match = url.match(/@([^:/?#]+)/);
+          if (match && match[1]) {
+            const currentDomain = match[1];
+            console.log("Found domain in URL:", currentDomain);
+            console.log("Replacing with new domain...");
+            return url.replace(new RegExp('@' + currentDomain, 'g'), '@' + newDomain);
+          }
+          console.log("No domain found to replace, returning original URL");
+          return url;
+        }
+      }
+    </script>
+    <script>
       tailwind.config = {
         darkMode: 'selector',
+        theme: {
+          extend: {
+            screens: {
+              'sm': '640px',
+              'md': '768px',
+              'lg': '1024px',
+              'xl': '1280px',
+              '2xl': '1450px', // Custom breakpoint at 1450px
+              '3xl': '1600px'
+            }
+          }
+        }
       }
     </script>
   </head>
@@ -1055,7 +1124,7 @@ let baseHTML = `
     <!-- Notification -->
     <div
       id="notification-badge"
-      class="fixed z-50 opacity-0 transition-opacity ease-in-out duration-300 mt-9 mr-6 right-0 p-3 max-w-sm bg-white rounded-xl border border-2 border-neutral-800 flex items-center gap-x-4"
+      class="fixed z-50 opacity-0 transition-opacity ease-in-out duration-300 top-24 right-3 p-3 max-w-sm bg-white rounded-xl border border-2 border-neutral-800 flex items-center gap-x-4"
     >
       <div class="shrink-0">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#171717" class="size-6">
@@ -1074,41 +1143,55 @@ let baseHTML = `
         <p class="text-sm text-neutral-800">Akun berhasil disalin</p>
       </div>
     </div>
-    <!-- Select Country -->
-    <div>
-      <div
-        class="h-full fixed top-0 w-14 bg-white dark:bg-neutral-800 border-r-2 border-neutral-800 dark:border-white z-20 overflow-y-scroll scrollbar-hide"
+    <!-- Select Country Dropdown -->
+    <div class="fixed top-3 left-3 z-30">
+      <button
+        id="country-dropdown-button"
+        class="flex items-center justify-center bg-amber-400 border-2 border-neutral-800 rounded-full p-2"
+        onclick="toggleCountryDropdown()"
       >
-        <div class="text-2xl flex flex-col items-center h-full gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" />
+        </svg>
+      </button>
+      <div
+        id="country-dropdown"
+        class="hidden mt-2 p-3 bg-white dark:bg-neutral-800 border-2 border-neutral-800 dark:border-white rounded-lg shadow-lg max-h-80 overflow-y-auto scrollbar-hide"
+      >
+        <div class="grid grid-cols-4 gap-2">
           PLACEHOLDER_BENDERA_NEGARA
         </div>
       </div>
     </div>
     <!-- Main -->
-    <div id="container-header">
-      <div id="container-info" class="bg-amber-400 border-2 border-neutral-800 text-right px-5">
-        <div class="flex justify-end gap-3 text-sm">
-          <p id="container-info-ip">IP: 127.0.0.1</p>
-          <p id="container-info-country">Country: Indonesia</p>
-          <p id="container-info-isp">ISP: Localhost</p>
-        </div>
-      </div>
-    </div>
-    <div class="container">
+    <div class="container mx-auto px-4">
       <div
         id="container-title"
-        class="sticky bg-white dark:bg-neutral-800 border-b-2 border-neutral-800 dark:border-white z-10 py-6 w-screen"
+        class="sticky bg-white dark:bg-neutral-800 border-b-2 border-neutral-800 dark:border-white z-10 py-6 w-full"
       >
         <h1 class="text-xl text-center text-neutral-800 dark:text-white">
           PLACEHOLDER_JUDUL
         </h1>
       </div>
-      <div class="flex gap-6 pt-10 w-screen justify-center">
+
+      <!-- Info Header - Moved below title -->
+      <div id="container-header" class="flex justify-center mt-2 mb-6">
+        <div id="container-info" class="bg-amber-400 border-2 border-neutral-800 rounded-lg pt-1 pl-6 pb-1 pr-6 shadow-md">
+          <div class="flex flex-row items-center gap-6 text-sm">
+            <div id="container-info-country" class="flex items-center gap-3 font-medium font-bold">
+              <span>Loading...</span>
+            </div>
+            <div id="container-info-isp" class="line-clamp-1 max-w-[200px]">Checking ISP...</div>
+            <div id="container-info-ip" class="font-medium font-mono rounded">Checking IP...</div>
+          </div>
+        </div>
+      </div>
+      <div class="flex gap-6 pt-4 w-full justify-center">
         PLACEHOLDER_PROXY_GROUP
       </div>
 
       <!-- Pagination -->
-      <nav id="container-pagination" class="w-screen mt-8 sticky bottom-0 right-0 left-0 transition -translate-y-6 z-20">
+      <nav id="container-pagination" class="w-full mt-8 sticky bottom-0 right-0 left-0 transition -translate-y-6 z-20">
         <ul class="flex justify-center space-x-4">
           PLACEHOLDER_PAGE_BUTTON
         </ul>
@@ -1207,6 +1290,47 @@ let baseHTML = `
           </div>
         </div>
       </div>
+      
+      <!-- Domain Settings -->
+      <div id="domain-settings-window" class="fixed hidden z-20 top-0 right-0 w-full h-full flex justify-center items-center">
+        <div class="w-[75%] h-[40%] flex flex-col gap-3 p-4 text-center rounded-md bg-white dark:bg-neutral-800 shadow-lg">
+          <h2 class="text-xl font-bold dark:text-white">Domain Settings</h2>
+          <div class="w-full">
+            <label class="block text-left mb-1 dark:text-white">Target Domain:</label>
+            <input
+              id="target-domain-input"
+              type="text"
+              placeholder="quiz.int.vidio.com"
+              value="quiz.int.vidio.com"
+              class="w-full px-4 py-2 rounded-md focus:outline-0 border dark:bg-neutral-700 dark:text-white dark:border-neutral-600"
+            />
+          </div>
+          <div class="w-full">
+            <label class="block text-left mb-1 dark:text-white">Source Domain:</label>
+            <input
+              id="source-domain-input"
+              type="text"
+              placeholder="proxy.exbal.my.id"
+              value="proxy.exbal.my.id"
+              class="w-full px-4 py-2 rounded-md focus:outline-0 border dark:bg-neutral-700 dark:text-white dark:border-neutral-600"
+            />
+          </div>
+          <div class="flex justify-end gap-2 mt-2">
+            <button
+              onclick="toggleDomainSettingsWindow()"
+              class="px-4 py-2 rounded-md bg-gray-300 dark:bg-neutral-600 dark:text-white"
+            >
+              Cancel
+            </button>
+            <button
+              onclick="saveDomainSettings()"
+              class="px-4 py-2 rounded-md bg-purple-500 text-white"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <footer>
@@ -1215,7 +1339,7 @@ let baseHTML = `
           <button class="bg-green-500 rounded-full border-2 border-neutral-800 p-1 block">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
               <path
-                d="M10.464 8.746c.227-.18.497-.311.786-.394v2.795a2.252 2.252 0 0 1-.786-.393c-.394-.313-.546-.681-.546-1.004 0-.323.152-.691.546-1.004ZM12.75 15.662v-2.824c.347.085.664.228.921.421.427.32.579.686.579.991 0 .305-.152.671-.579.991a2.534 2.534 0 0 1-.921.42Z"
+                d="M10.464 8.746c.227-.18.497-.311.786-.394v2.795a2.252 2.252 0 0 1-.786-.393c-.394-.313-.546-.681-.546-1.004 0-.323.152-.691.546-1.004ZM12.75 15.662v-2.824c.347-.085.664-.228.921.421.427.32.579.686.579.991 0 .305-.152.671-.579.991a2.534 2.534 0 0 1-.921.42Z"
               />
               <path
                 fill-rule="evenodd"
@@ -1254,21 +1378,84 @@ let baseHTML = `
               stroke-linecap="round"
               stroke-linejoin="round"
               d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"
-            ></path>
-          </svg>
-        </button>
-      </div>
-    </footer>
+          ></path>
+        </svg>
+      </button>
+      <button onclick="toggleDomainSettingsWindow()" class="bg-purple-500 rounded-full border-2 border-neutral-800 p-1">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+        </svg>
+      </button>
+      <button onclick="copySelectedProxies()" class="bg-blue-500 rounded-full border-2 border-neutral-800 p-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+          <path d="M12.0312 2.03125C10.0813 2.03125 8.26125 2.59125 6.73125 3.55125L13.5913 10.4213L13.6013 7.68125C13.6013 7.27125 13.9413 6.93125 14.3513 6.93125C14.7713 6.93125 15.1013 7.27125 15.1013 7.68125L15.0913 12.2312C15.0913 12.5413 14.9012 12.8113 14.6213 12.9213C14.5312 12.9613 14.4313 12.9812 14.3413 12.9812C14.1413 12.9812 13.9513 12.9013 13.8113 12.7613L5.62125 4.56125C5.58125 4.52125 5.55125 4.48125 5.52125 4.44125C3.38125 6.28125 2.03125 9.00125 2.03125 12.0312C2.03125 17.5513 6.51125 22.0312 12.0312 22.0312C13.9812 22.0312 15.8013 21.4712 17.3313 20.5112L10.4713 13.6413L10.4613 16.3812C10.4613 16.7912 10.1213 17.1312 9.71125 17.1312C9.29125 17.1312 8.96125 16.7912 8.96125 16.3812L8.97125 11.8313C8.97125 11.5212 9.16125 11.2513 9.44125 11.1413C9.71125 11.0213 10.0413 11.0813 10.2513 11.3013L18.4412 19.5012C18.4813 19.5413 18.5112 19.5812 18.5413 19.6213C20.6812 17.7812 22.0312 15.0612 22.0312 12.0312C22.0312 6.51125 17.5513 2.03125 12.0312 2.03125Z" fill="#292D32"/>
+        </svg>
+      </button>
+    </div>
+  </footer>
 
     <script>
       // Shared
-      const rootDomain = "${serviceName}.${rootDomain}";
+      const serviceName = "${serviceName}";
+      const rootDomain = "${rootDomain}";
       const notification = document.getElementById("notification-badge");
       const windowContainer = document.getElementById("container-window");
       const windowInfoContainer = document.getElementById("container-window-info");
       const converterUrl =
         "https://script.google.com/macros/s/AKfycbwwVeHNUlnP92syOP82p1dOk_-xwBgRIxkTjLhxxZ5UXicrGOEVNc5JaSOu0Bgsx_gG/exec";
 
+      // Domain settings with default values
+      let domainSettings = {
+        sourceDomain: "proxy.exbal.my.id",
+        targetDomain: "quiz.int.vidio.com"
+      };
+
+      // Load domain settings from localStorage if available
+      if (localStorage.getItem('domainSettings')) {
+        try {
+          domainSettings = JSON.parse(localStorage.getItem('domainSettings'));
+          // Update input fields if they exist
+          setTimeout(() => {
+            const sourceInput = document.getElementById('source-domain-input');
+            const targetInput = document.getElementById('target-domain-input');
+            if (sourceInput) sourceInput.value = domainSettings.sourceDomain;
+            if (targetInput) targetInput.value = domainSettings.targetDomain;
+          }, 100);
+        } catch (e) {
+          console.error('Error loading domain settings:', e);
+        }
+      }
+
+      // Fungsi untuk mengganti domain dalam URL
+      function replaceDomain(url, oldDomain, newDomain) {
+        // Hanya ganti domain yang diawali dengan karakter "@"
+        // Jangan ganti domain yang ada di parameter "host=" atau "sni="
+        console.log("Replacing domain in URL:", url);
+        console.log("Old domain:", oldDomain);
+        console.log("New domain:", newDomain);
+        
+        // Cek apakah URL mengandung domain lama
+        if (url.includes('@' + oldDomain)) {
+          console.log("URL contains old domain, replacing...");
+          return url.replace(new RegExp('@' + oldDomain, 'g'), '@' + newDomain);
+        } else if (url.includes('@quiz.int.vidio.com')) {
+          // Jika URL mengandung domain default, ganti dengan domain baru
+          console.log("URL contains default domain, replacing with new domain...");
+          return url.replace(new RegExp('@quiz.int.vidio.com', 'g'), '@' + newDomain);
+        } else {
+          // Coba cari domain lain yang mungkin perlu diganti
+          const match = url.match(/@([^:/?#]+)/);
+          if (match && match[1]) {
+            const currentDomain = match[1];
+            console.log("Found domain in URL:", currentDomain);
+            console.log("Replacing with new domain...");
+            return url.replace(new RegExp('@' + currentDomain, 'g'), '@' + newDomain);
+          }
+          console.log("No domain found to replace, returning original URL");
+          return url;
+        }
+      }
 
       // Switches
       let isDomainListFetched = false;
@@ -1282,7 +1469,7 @@ let baseHTML = `
 
         windowInfoContainer.innerText = "Fetching data...";
 
-        const url = "https://" + rootDomain + "/api/v1/domains/get";
+        const url = "https://" + serviceName + "." + rootDomain + "/api/v1/domains/get";
         const res = fetch(url).then(async (res) => {
           const domainListContainer = document.getElementById("container-domains");
           domainListContainer.innerHTML = "";
@@ -1332,12 +1519,21 @@ let baseHTML = `
       }
 
       function copyToClipboard(text) {
+        console.log("Original URL:", text);
         toggleOutputWindow();
         rawConfig = text;
       }
 
       function copyToClipboardAsRaw() {
-        navigator.clipboard.writeText(rawConfig);
+        // Ganti domain dalam rawConfig sebelum menyalin ke clipboard
+        console.log("Raw config before:", rawConfig);
+        console.log("Source domain:", domainSettings.sourceDomain);
+        console.log("Target domain:", domainSettings.targetDomain);
+        
+        const modifiedRawConfig = replaceDomain(rawConfig, domainSettings.sourceDomain, domainSettings.targetDomain);
+        console.log("Modified raw config:", modifiedRawConfig);
+        
+        navigator.clipboard.writeText(modifiedRawConfig);
 
         notification.classList.remove("opacity-0");
         setTimeout(() => {
@@ -1347,11 +1543,15 @@ let baseHTML = `
 
       async function copyToClipboardAsTarget(target) {
         windowInfoContainer.innerText = "Generating config...";
+        
+        // Ganti domain dalam rawConfig sebelum mengirim ke converter
+        const modifiedRawConfig = replaceDomain(rawConfig, domainSettings.sourceDomain, domainSettings.targetDomain);
+        
         const url = "${CONVERTER_URL}";
         const res = await fetch(url, {
           method: "POST",
           body: JSON.stringify({
-            url: rawConfig,
+            url: modifiedRawConfig,
             format: target,
             template: "cf",
           }),
@@ -1359,7 +1559,16 @@ let baseHTML = `
 
         if (res.status == 200) {
           windowInfoContainer.innerText = "Done!";
-          navigator.clipboard.writeText(await res.text());
+          
+          // Dapatkan respons dan ganti domain jika perlu
+          let responseText = await res.text();
+          
+          // Untuk format BFR, kita perlu mengganti domain dalam respons
+          if (target === "bfr") {
+            responseText = replaceDomain(responseText, "proxy.exbal.my.id", "quiz.int.vidio.com");
+          }
+          
+          navigator.clipboard.writeText(responseText);
 
           notification.classList.remove("opacity-0");
           setTimeout(() => {
@@ -1396,6 +1605,63 @@ let baseHTML = `
           rootElement.classList.add("hidden");
         }
       }
+      
+      function toggleDomainSettingsWindow() {
+        windowInfoContainer.innerText = "Domain Settings";
+        toggleWindow();
+        
+        // Update input fields with current settings
+        const sourceInput = document.getElementById('source-domain-input');
+        const targetInput = document.getElementById('target-domain-input');
+        if (sourceInput) sourceInput.value = domainSettings.sourceDomain;
+        if (targetInput) targetInput.value = domainSettings.targetDomain;
+        
+        const rootElement = document.getElementById("domain-settings-window");
+        if (rootElement.classList.contains("hidden")) {
+          rootElement.classList.remove("hidden");
+        } else {
+          rootElement.classList.add("hidden");
+        }
+      }
+      
+      function saveDomainSettings() {
+        const sourceInput = document.getElementById('source-domain-input');
+        const targetInput = document.getElementById('target-domain-input');
+        
+        if (sourceInput && targetInput) {
+          // Update domain settings
+          const newSourceDomain = sourceInput.value.trim();
+          const newTargetDomain = targetInput.value.trim();
+          
+          console.log("Saving domain settings:");
+          console.log("Old source domain:", domainSettings.sourceDomain);
+          console.log("New source domain:", newSourceDomain);
+          console.log("Old target domain:", domainSettings.targetDomain);
+          console.log("New target domain:", newTargetDomain);
+          
+          domainSettings.sourceDomain = newSourceDomain;
+          domainSettings.targetDomain = newTargetDomain;
+          
+          // Save to localStorage
+          try {
+            localStorage.setItem('domainSettings', JSON.stringify(domainSettings));
+            windowInfoContainer.innerText = "Settings saved!";
+            
+            console.log("Domain settings saved to localStorage");
+            console.log("Current domainSettings:", domainSettings);
+            
+            // Show notification
+            notification.classList.remove("opacity-0");
+            setTimeout(() => {
+              notification.classList.add("opacity-0");
+              toggleDomainSettingsWindow(); // Close the window
+            }, 1000);
+          } catch (e) {
+            console.error('Error saving domain settings:', e);
+            windowInfoContainer.innerText = "Error saving settings!";
+          }
+        }
+      }
 
       function toggleWindow() {
         if (windowContainer.classList.contains("hidden")) {
@@ -1428,7 +1694,7 @@ let baseHTML = `
 
           let isActive = false;
           new Promise(async (resolve) => {
-            const res = await fetch("https://${serviceName}.${rootDomain}/check?target=" + target)
+            const res = await fetch("https://" + serviceName + "." + rootDomain + "/check?target=" + target)
               .then(async (res) => {
                 if (isActive) return;
                 if (res.status == 200) {
@@ -1474,21 +1740,201 @@ let baseHTML = `
       }
 
       function checkGeoip() {
+        console.log("checkGeoip function called"); // Debug log
+
         const containerIP = document.getElementById("container-info-ip");
         const containerCountry = document.getElementById("container-info-country");
         const containerISP = document.getElementById("container-info-isp");
-        const res = fetch("https://" + rootDomain + "/api/v1/myip").then(async (res) => {
-          if (res.status == 200) {
-            const respJson = await res.json();
-            containerIP.innerText = "IP: " + respJson.ip;
-            containerCountry.innerText = "Country: " + respJson.country;
-            containerISP.innerText = "ISP: " + respJson.asOrganization;
+
+        if (!containerIP || !containerCountry || !containerISP) {
+          console.error("One or more container elements not found");
+          return;
+        }
+
+        // Immediately set some default values to ensure something is displayed
+        containerIP.innerHTML = '<span class="font-mono">Fetching IP...</span>';
+        containerCountry.innerHTML = '<span>Detecting location...</span>';
+        containerISP.innerHTML = '<span>Identifying ISP...</span>';
+
+        // Set a timeout to ensure we show something if all APIs fail
+        const fallbackTimeout = setTimeout(() => {
+          console.log("Fallback timeout triggered");
+          if (containerIP.innerHTML.includes('Fetching')) {
+            containerIP.innerHTML = '<span class="font-mono">Unknown IP</span>';
           }
-        });
+          if (containerCountry.innerHTML.includes('Detecting')) {
+            containerCountry.innerHTML = '<span>Unknown Location</span>';
+          }
+          if (containerISP.innerHTML.includes('Identifying')) {
+            containerISP.innerHTML = '<span>Unknown ISP</span>';
+          }
+        }, 8000); // 8 seconds timeout
+
+        // Try a direct approach with ip-api.com first (most reliable for all info)
+        console.log("Trying ip-api.com first");
+        fetch('https://ip-api.com/json/?fields=query,country,countryCode,isp,org,as')
+          .then(res => {
+            if (!res.ok) throw new Error('ip-api.com response not ok: ' + res.status);
+            return res.json();
+          })
+          .then(data => {
+            console.log("ip-api.com response:", data);
+            clearTimeout(fallbackTimeout);
+
+            // Update IP
+            if (data.query) {
+              containerIP.innerHTML = '<span class="font-mono">' + data.query + '</span>';
+            }
+
+            // Update country
+            if (data.countryCode) {
+              const countryCode = data.countryCode.toLowerCase();
+              containerCountry.innerHTML = '<div class="flex items-center gap-1">' +
+                '<img width="20" height="15" src="https://flagcdn.com/w320/' + countryCode + '.png" alt="' + data.country + '" />' +
+                '<span>' + data.country + '</span>' +
+              '</div>';
+            }
+
+            // Update ISP - try multiple fields
+            const ispInfo = data.org || data.isp || data.as || "Unknown ISP";
+            containerISP.innerHTML = '<span title="' + ispInfo + '" class="line-clamp-1">' + ispInfo + '</span>';
+          })
+          .catch(err => {
+            console.error('ip-api.com failed:', err);
+            // Try ipinfo.io as backup
+            tryIpInfoIo();
+          });
+
+        function tryIpInfoIo() {
+          console.log("Trying ipinfo.io as backup");
+          fetch('https://ipinfo.io/json')
+            .then(res => {
+              if (!res.ok) throw new Error('ipinfo.io response not ok: ' + res.status);
+              return res.json();
+            })
+            .then(data => {
+              console.log("ipinfo.io response:", data);
+              clearTimeout(fallbackTimeout);
+
+              // Update IP
+              if (data.ip) {
+                containerIP.innerHTML = '<span class="font-mono">' + data.ip + '</span>';
+              }
+
+              // Update country
+              if (data.country) {
+                const countryCode = data.country.toLowerCase();
+                containerCountry.innerHTML = '<div class="flex items-center gap-1">' +
+                  '<img width="20" height="15" src="https://flagcdn.com/w320/' + countryCode + '.png" alt="' + data.country + '" />' +
+                  '<span>' + data.country + '</span>' +
+                '</div>';
+              }
+
+              // Update ISP
+              if (data.org) {
+                const ispInfo = data.org.replace(/^AS\\d+\\s+/, ''); // Remove AS number prefix if present
+                containerISP.innerHTML = '<span title="' + ispInfo + '" class="line-clamp-1">' + ispInfo + '</span>';
+              }
+            })
+            .catch(err => {
+              console.error('ipinfo.io failed:', err);
+              // Try our own API as last resort
+              tryOurApi();
+            });
+        }
+
+        function tryOurApi() {
+          console.log("Trying our own API as last resort");
+          
+          try {
+            const apiUrl = "https://" + serviceName + "." + rootDomain + "/api/v1/myip";
+            
+            fetch(apiUrl)
+              .then(res => {
+                if (!res.ok) throw new Error('Our API response not ok: ' + res.status);
+                return res.json();
+              })
+            .then(data => {
+              console.log("Our API response:", data);
+              clearTimeout(fallbackTimeout);
+
+              // Update IP
+              if (data.ip) {
+                containerIP.innerHTML = '<span class="font-mono">' + data.ip + '</span>';
+              }
+
+              // Update country
+              if (data.country) {
+                const countryCode = data.country.toLowerCase();
+                containerCountry.innerHTML = '<div class="flex items-center gap-1">' +
+                  '<img width="20" height="15" src="https://flagcdn.com/w320/' + countryCode + '.png" alt="' + data.country + '" />' +
+                  '<span>' + data.country + '</span>' +
+                '</div>';
+              }
+
+              // Update ISP
+              const ispInfo = data.asOrganization || data.isp || data.asn || "Unknown ISP";
+              containerISP.innerHTML = '<span title="' + ispInfo + '" class="line-clamp-1">' + ispInfo + '</span>';
+            })
+            .catch(err => {
+              console.error('Our API failed:', err);
+              // If all APIs fail, ensure we don't show loading messages
+              if (containerIP.innerHTML.includes('Fetching')) {
+                containerIP.innerHTML = '<span class="font-mono">Unknown IP</span>';
+              }
+              if (containerCountry.innerHTML.includes('Detecting')) {
+                containerCountry.innerHTML = '<span>Unknown Location</span>';
+              }
+              if (containerISP.innerHTML.includes('Identifying')) {
+                containerISP.innerHTML = '<span>Unknown ISP</span>';
+              }
+            });
+          } catch (err) {
+            console.error('Error in tryOurApi:', err);
+            // If all APIs fail, ensure we don't show loading messages
+            if (containerIP.innerHTML.includes('Fetching')) {
+              containerIP.innerHTML = '<span class="font-mono">Unknown IP</span>';
+            }
+            if (containerCountry.innerHTML.includes('Detecting')) {
+              containerCountry.innerHTML = '<span>Unknown Location</span>';
+            }
+            if (containerISP.innerHTML.includes('Identifying')) {
+              containerISP.innerHTML = '<span>Unknown ISP</span>';
+            }
+          }
+        }
+      }
+
+      function toggleCountryDropdown() {
+        const dropdown = document.getElementById('country-dropdown');
+        if (dropdown.classList.contains('hidden')) {
+          dropdown.classList.remove('hidden');
+          // Close dropdown when clicking outside
+          document.addEventListener('click', closeDropdownOnClickOutside);
+        } else {
+          dropdown.classList.add('hidden');
+          document.removeEventListener('click', closeDropdownOnClickOutside);
+        }
+      }
+
+      function closeDropdownOnClickOutside(event) {
+        const dropdown = document.getElementById('country-dropdown');
+        const button = document.getElementById('country-dropdown-button');
+
+        if (!dropdown.contains(event.target) && !button.contains(event.target)) {
+          dropdown.classList.add('hidden');
+          document.removeEventListener('click', closeDropdownOnClickOutside);
+        }
       }
 
       window.onload = () => {
+        console.log("Window loaded, initializing...");
+
+        // Run checkGeoip immediately to start fetching data
+        console.log("Running checkGeoip...");
         checkGeoip();
+
+        // Run other initialization functions
         checkProxy();
         // checkRegion();
 
@@ -1509,6 +1955,62 @@ let baseHTML = `
           paginationContainer.classList.add("-translate-y-6");
         }
       };
+
+      // Add this function to handle the selection of proxies
+      function toggleProxySelection(proxy, index) {
+        const selectedProxies = JSON.parse(localStorage.getItem('selectedProxies')) || [];
+        const proxyIndex = selectedProxies.indexOf(proxy);
+
+        if (proxyIndex > -1) {
+          selectedProxies.splice(proxyIndex, 1);
+        } else {
+          selectedProxies.push(proxy);
+        }
+
+        localStorage.setItem('selectedProxies', JSON.stringify(selectedProxies));
+        document.getElementById('proxy-checkbox-' + index + '-' + x).checked = proxyIndex === -1;
+      }
+
+      // Add this function to convert and copy the selected proxies to the clipboard
+      async function copySelectedProxies() {
+        const selectedProxies = JSON.parse(localStorage.getItem('selectedProxies')) || [];
+        if (selectedProxies.length === 0) {
+          alert('No proxies selected');
+          return;
+        }
+
+        const format = prompt('Enter the format (raw, clash, sfa, bfr, v2ray):', 'raw');
+        if (!format) return;
+
+        const url = "${CONVERTER_URL}";
+        const res = await fetch(url, {
+          method: "POST",
+          body: JSON.stringify({
+            url: selectedProxies.join(","),
+            format: format,
+            template: "cf",
+          }),
+        });
+
+        if (res.status === 200) {
+          navigator.clipboard.writeText(await res.text());
+          alert('Proxies copied to clipboard');
+        } else {
+          alert('Failed to copy proxies');
+        }
+      }
+
+      // Add this button to the HTML to trigger the copySelectedProxies function
+      // Add this function to toggle the visibility of proxy buttons
+      function toggleProxyButtons(index) {
+        const proxyButtons = document.getElementById('proxy-buttons-' + index);
+        if (proxyButtons.classList.contains("hidden")) {
+          proxyButtons.classList.remove("hidden");
+        } else {
+          proxyButtons.classList.add("hidden");
+        }
+      }
+
     </script>
     </body>
 
@@ -1542,27 +2044,28 @@ class Document {
 
   buildProxyGroup() {
     let proxyGroupElement = "";
-    proxyGroupElement += `<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">`;
+    proxyGroupElement += `<div class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">`;
     for (let i = 0; i < this.proxies.length; i++) {
       const proxyData = this.proxies[i];
 
       // Assign proxies
-      proxyGroupElement += `<div class="lozad scale-95 mb-2 bg-white dark:bg-neutral-800 transition-transform duration-200 rounded-lg p-4 w-60 border-2 border-neutral-800">`;
-      proxyGroupElement += `  <div id="countryFlag" class="absolute -translate-y-9 -translate-x-2 border-2 border-neutral-800 rounded-full overflow-hidden"><img width="32" src="https://hatscripts.github.io/circle-flags/flags/${proxyData.country.toLowerCase()}.svg" /></div>`;
-      proxyGroupElement += `  <div>`;
-      proxyGroupElement += `    <div id="ping-${i}" class="animate-pulse text-xs font-semibold dark:text-white">Idle ${proxyData.proxyIP}:${proxyData.proxyPort}</div>`;
-      proxyGroupElement += `  </div>`;
-      proxyGroupElement += `  <div class="rounded py-1 px-2 bg-amber-400 dark:bg-neutral-800 dark:border-2 dark:border-amber-400">`;
-      proxyGroupElement += `    <h5 class="font-bold text-md text-neutral-900 dark:text-white mb-1 overflow-x-scroll scrollbar-hide text-nowrap">${proxyData.org}</h5>`;
-      proxyGroupElement += `    <div class="text-neutral-900 dark:text-white text-sm">`;
-      proxyGroupElement += `      <p>IP: ${proxyData.proxyIP}</p>`;
-      proxyGroupElement += `      <p>Port: ${proxyData.proxyPort}</p>`;
-      proxyGroupElement += `      <div id="container-region-check-${i}">`;
-      proxyGroupElement += `        <input id="config-sample-${i}" class="hidden" type="text" value="${proxyData.list[0]}">`;
+      proxyGroupElement += `<div class="lozad scale-95 mb-2 dark:bg-neutral-800 transition-transform duration-200 rounded-lg p-2 w-full border-2 border-orange-600">`;
+      proxyGroupElement += `  <div id="countryFlag" class="absolute -translate-y-9 -translate-x-2 border-2 border-neutral-800 overflow-hidden"><img width="35" height="25" src="https://flagcdn.com/w320/${proxyData.country.toLowerCase()}.png" /></div>`;
+      proxyGroupElement += `  <div class="flex flex-col items-center">`;
+      proxyGroupElement += `    <div class="text-center">`;
+      proxyGroupElement += `      <div id="ping-${i}" class="animate-pulse text-xs font-semibold dark:text-white">Idle ${proxyData.proxyIP}:${proxyData.proxyPort}</div>`;
+      proxyGroupElement += `      <div class="rounded py-1 px-2">`;
+      proxyGroupElement += `        <h5 class="font-bold text-md text-neutral-900 dark:text-white mb-1 overflow-x-scroll scrollbar-hide text-nowrap">${proxyData.org}</h5>`;
+      proxyGroupElement += `        <div class="text-neutral-900 dark:text-white text-sm">`;
+      proxyGroupElement += `          <p>Ip: ${proxyData.proxyIP} - Port: ${proxyData.proxyPort}</p>`;
+      proxyGroupElement += `          <div id="container-region-check-${i}">`;
+      proxyGroupElement += `            <input id="config-sample-${i}" class="hidden" type="text" value="${proxyData.list[0]}">`;
+      proxyGroupElement += `          </div>`;
+      proxyGroupElement += `        </div>`;
       proxyGroupElement += `      </div>`;
       proxyGroupElement += `    </div>`;
-      proxyGroupElement += `  </div>`;
-      proxyGroupElement += `  <div class="flex flex-col gap-2 mt-3 text-sm">`;
+      proxyGroupElement += `    <button class="bg-blue-500 dark:bg-neutral-800 dark:border-2 dark:border-blue-500 rounded p-1 w-full text-white mt-2" onclick="toggleProxyButtons(${i})">Show Proxies</button>`;
+      proxyGroupElement += `    <div id="proxy-buttons-${i}" class="hidden grid grid-cols-3 gap-2 text-sm mt-2">`; // Container for proxy buttons
       for (let x = 0; x < proxyData.list.length; x++) {
         const indexName = [
           `${reverse("NAJORT")} TLS`,
@@ -1574,16 +2077,12 @@ class Document {
         ];
         const proxy = proxyData.list[x];
 
-        if (x % 2 == 0) {
-          proxyGroupElement += `<div class="flex gap-2 justify-around w-full">`;
-        }
-
+        proxyGroupElement += `<div class="flex items-center gap-2">`;
+        proxyGroupElement += `<input type="checkbox" id="proxy-checkbox-${i}-${x}" onclick="toggleProxySelection('${proxy}', '${i}-${x}')">`;
         proxyGroupElement += `<button class="bg-blue-500 dark:bg-neutral-800 dark:border-2 dark:border-blue-500 rounded p-1 w-full text-white" onclick="copyToClipboard('${proxy}')">${indexName[x]}</button>`;
-
-        if (x % 2 == 1) {
-          proxyGroupElement += `</div>`;
-        }
+        proxyGroupElement += `</div>`;
       }
+      proxyGroupElement += `    </div>`;
       proxyGroupElement += `  </div>`;
       proxyGroupElement += `</div>`;
     }
@@ -1601,9 +2100,12 @@ class Document {
 
     let flagElement = "";
     for (const flag of new Set(flagList)) {
-      flagElement += `<a href="/sub?cc=${flag}${
-        proxyBankUrl ? "&proxy-list=" + proxyBankUrl : ""
-      }" class="py-1" ><img width=20 src="https://hatscripts.github.io/circle-flags/flags/${flag.toLowerCase()}.svg" /></a>`;
+      flagElement += `
+        <a href="/sub?cc=${flag}${proxyBankUrl ? "&proxy-list=" + proxyBankUrl : ""}"
+           class="flex flex-col items-center p-2 hover:bg-gray-100 dark:hover:bg-neutral-700 rounded-lg transition-colors">
+          <img width="35" height="25" src="https://flagcdn.com/w320/${flag.toLowerCase()}.png" class="mb-1" />
+          <span class="text-xs font-medium text-center dark:text-white">${flag}</span>
+        </a>`;
     }
 
     this.html = this.html.replaceAll("PLACEHOLDER_BENDERA_NEGARA", flagElement);
