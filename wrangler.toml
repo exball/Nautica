@@ -1,6 +1,15 @@
-name = "nautica"
+name = "proxy"
 main = "_worker.js"
 compatibility_date = "2023-08-23"
+workers_dev = false
+preview_urls = false
+
+routes = [
+  { pattern = "proxy.exbal.my.id", custom_domain = true }
+]
+
+[vars]
+UUID = "2ec550b4-b3e0-47be-a325-56174710883a"
 
 [unsafe.metadata.observability]
 enabled = true
