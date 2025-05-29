@@ -11,7 +11,7 @@ on:
       environment:
         description: 'wrangler env to deploy to'
         required: true
-        default: 'prod'
+        default: 'dev'
         type: choice
         options:
         - dev
@@ -21,6 +21,30 @@ on:
         description: 'git tip commit to deploy'
         default: 'main'
         required: true
+
+  push:
+    # TODO: inputs.environment and inputs.commit
+    branches:
+      - "main"
+    tags:
+      - "v*"
+    paths-ignore:
+      - ".github/**"
+      - "!.github/workflows/cf.yml"
+      - ".env.example"
+      - ".eslintrc.cjs"
+      - ".prettierignore"
+      - "fly.toml"
+      - "README.md"
+      - "node.Dockerfile"
+      - "deno.Dockerfile"
+      - "import_map.json"
+      - ".vscode/*"
+      - ".husky/*"
+      - ".prettierrc.json"
+      - "LICENSE"
+      - "run"
+  repository_dispatch:
 
 env:
   GIT_REF: ${{ github.event.inputs.commit || github.ref }}
@@ -38,6 +62,11 @@ jobs:
         with:
           ref: ${{ env.GIT_REF }}
           fetch-depth: 0
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
 
       - name: 🛸 Env?
         # 'dev' env deploys to default WORKERS_ENV, which is, '' (an empty string)
@@ -62,19 +91,18 @@ jobs:
           WENV: 'prod'
           COMMIT_SHA: ${{ github.sha }}
 
-        # npm (and node16) are installed by wrangler-action in a pre-job setup
+        # Install dependencies using Node.js 20
       - name: 🏗 Get dependencies
         run: npm i
 
-      - name: 📚 Wrangler publish
-        # github.com/cloudflare/wrangler-action
-        uses: cloudflare/wrangler-action@2.0.0
-        with:
-          apiToken: ${{ secrets.CF_API_TOKEN }}
-          # input overrides env-defaults, regardless
-          environment: ${{ env.WORKERS_ENV }}
+      - name: 📚 Install and Run Wrangler
+        run: |
+          npm install -g wrangler
+          wrangler deploy
         env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          WORKERS_ENV: ${{ env.WORKERS_ENV }}
           GIT_COMMIT_ID: ${{ env.GIT_REF }}
 
       - name: 🎤 Notice
