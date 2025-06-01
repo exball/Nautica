@@ -2612,6 +2612,7 @@
 203.194.112.119,2053,ID,First Cagayan Converge Data Center Inc.
 103.6.207.108,8080,ID,PT Pusat Media Indonesia
 36.95.152.58,12137,ID,PT Telkom Indonesia
+103.126.226.23,10011,ID,PT Deneva
 40.113.60.248,2053,IE,Microsoft Azure
 34.253.234.62,443,IE,Amazon.com
 52.19.178.111,8443,IE,Amazon.com
