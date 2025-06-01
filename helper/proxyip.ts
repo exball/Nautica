@@ -181,7 +181,7 @@ async function readProxyList(): Promise<ProxyStruct[]> {
           );
 
           if (kvPair[res.result.country] == undefined) kvPair[res.result.country] = [];
-          if (kvPair[res.result.country].length < 10) {
+          if (kvPair[res.result.country].length < 20) {
             kvPair[res.result.country].push(`${res.result.proxy}:${res.result.port}`);
           }
 
