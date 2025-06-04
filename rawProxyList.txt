@@ -5427,7 +5427,6 @@
 103.63.101.10,443,ID,PT Newton Cipta Informatika
 103.6.207.108,8080,ID,PT Pusat Media Indonesia
 36.95.152.58,12137,ID,PT Telkom Indonesia
-103.126.226.23,10011,ID,PT Deneva
 40.113.60.248,2053,IE,Microsoft Azure
 52.169.27.133,2053,IE,Microsoft Azure
 38.180.21.33,443,IE,M247 Europe SRL
@@ -12520,4 +12519,4 @@
 152.32.255.24,587,VN,UCLOUD INFORMATION TECHNOLOGY (HK) LIMITED
 103.15.90.134,49678,VN,Vietnam Posts And Telecommunications Group
 38.54.30.6,443,VN,Kaopu Cloud HK Limited
-4.221.60.243,2053,ZA,Microsoft Corporation
+4.221.60.243,2053,ZA,Microsoft Corporation
