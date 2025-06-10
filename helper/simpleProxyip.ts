@@ -24,7 +24,7 @@ let myGeoIpString: any = null;
 const KV_PAIR_PROXY_FILE = "./kvSimpleProxyList.json";
 const RAW_PROXY_LIST_FILE = "./rawSimpleProxyList.txt";
 const PROXY_LIST_FILE = "./simpleProxyList.txt";
-const IP_RESOLVER_DOMAIN = "myip.ipeek.workers.dev";
+const IP_RESOLVER_DOMAIN = "ip-resolver.xbl.workers.dev";
 const IP_RESOLVER_PATH = "/";
 const CONCURRENCY = 99;
 
